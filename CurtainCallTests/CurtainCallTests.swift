@@ -1,19 +1,20 @@
-//
-//  CurtainCallTests.swift
-//  CurtainCallTests
-//
-//  Created by kimseokhyun on 9/11/26.
-//
-
 import Testing
 @testable import CurtainCall
 
 struct CurtainCallTests {
-
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-        // Swift Testing Documentation
-        // https://developer.apple.com/documentation/testing
+    @Test func rejectsInvalidSignup() {
+        #expect(AuthValidation.signup(email: "invalid", password: "password123", confirmation: "password123", nickname: "닉네임") != nil)
+        #expect(AuthValidation.signup(email: "a@example.com", password: "123", confirmation: "123", nickname: "닉네임") != nil)
+        #expect(AuthValidation.signup(email: "a@example.com", password: "password123", confirmation: "different", nickname: "닉네임") != nil)
+        #expect(AuthValidation.signup(email: "a@example.com", password: "password123", confirmation: "password123", nickname: "  ") != nil)
     }
 
+    @Test func acceptsValidSignup() {
+        #expect(AuthValidation.signup(email: "a@example.com", password: "password123", confirmation: "password123", nickname: "커튼콜") == nil)
+    }
+
+    @Test func loginDoesNotApplyNewPasswordPolicy() {
+        #expect(AuthValidation.login(email: "a@example.com", password: "old") == nil)
+        #expect(AuthValidation.login(email: "a@example.com", password: "") != nil)
+    }
 }

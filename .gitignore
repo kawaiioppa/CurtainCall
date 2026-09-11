@@ -1,0 +1,8 @@
+# Xcode user-specific state and build output
+xcuserdata/
+DerivedData/
+.DS_Store
+
+# Local credentials and temporary test artifacts
+*.local
+*.secret

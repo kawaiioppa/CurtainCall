@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+        CC0000000000000000000001 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = CC0000000000000000000002 /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		7AC426333053CF7500819034 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -29,9 +33,18 @@
 		7AC4263C3053CF7500819034 /* CurtainCallUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CurtainCallUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+        CC0000000000000000000004 = {
+            isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+            membershipExceptions = (Info.plist,);
+            target = 7AC426223053CF7300819034;
+        };
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		7AC426253053CF7300819034 /* CurtainCall */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (CC0000000000000000000004,);
 			path = CurtainCall;
 			sourceTree = "<group>";
 		};
@@ -52,6 +65,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+                CC0000000000000000000001 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +126,7 @@
 			);
 			name = CurtainCall;
 			packageProductDependencies = (
+                CC0000000000000000000002 /* Supabase */,
 			);
 			productName = CurtainCall;
 			productReference = 7AC426233053CF7300819034 /* CurtainCall.app */;
@@ -195,7 +210,10 @@
 			);
 			mainGroup = 7AC4261A3053CF7300819034;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
+			packageReferences = (
+                CC0000000000000000000003 /* supabase-swift */,
+            );
+            preferredProjectObjectVersion = 77;
 			productRefGroup = 7AC426243053CF7300819034 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -267,6 +285,22 @@
 			targetProxy = 7AC4263D3053CF7500819034 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+        CC0000000000000000000003 /* supabase-swift */ = {
+            isa = XCRemoteSwiftPackageReference;
+            repositoryURL = "https://github.com/supabase/supabase-swift";
+            requirement = { kind = exactVersion; version = 2.55.2; };
+        };
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+        CC0000000000000000000002 /* Supabase */ = {
+            isa = XCSwiftPackageProductDependency;
+            package = CC0000000000000000000003 /* supabase-swift */;
+            productName = Supabase;
+        };
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		7AC426443053CF7500819034 /* Debug */ = {
@@ -397,6 +431,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CurtainCall/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -428,6 +463,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CurtainCall/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
