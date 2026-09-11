@@ -89,6 +89,34 @@ struct ContentView: View {
                             }.buttonStyle(.borderedProminent).disabled(auth.isBusy)
                                 .accessibilityIdentifier("authSubmit")
 
+                            HStack {
+                                Rectangle().frame(height: 1).foregroundStyle(.quaternary)
+                                Text("또는").font(.footnote).foregroundStyle(.secondary)
+                                Rectangle().frame(height: 1).foregroundStyle(.quaternary)
+                            }
+
+                            VStack(spacing: 10) {
+                                Button {
+                                    Task { await auth.signInWithOAuth(provider: .apple) }
+                                } label: {
+                                    Label("Apple로 계속하기", systemImage: "apple.logo")
+                                        .frame(maxWidth: .infinity).padding(.vertical, 8)
+                                }
+                                .buttonStyle(.bordered)
+                                .disabled(auth.isBusy)
+                                .accessibilityIdentifier("appleOAuth")
+
+                                Button {
+                                    Task { await auth.signInWithOAuth(provider: .google) }
+                                } label: {
+                                    Label("Google로 계속하기", systemImage: "g.circle")
+                                        .frame(maxWidth: .infinity).padding(.vertical, 8)
+                                }
+                                .buttonStyle(.bordered)
+                                .disabled(auth.isBusy)
+                                .accessibilityIdentifier("googleOAuth")
+                            }
+
                             if auth.confirmationEmail != nil {
                                 TimelineView(.periodic(from: .now, by: 1)) { context in
                                     let remaining = max(0, Int(ceil(auth.resendAvailableAt.timeIntervalSince(context.date))))

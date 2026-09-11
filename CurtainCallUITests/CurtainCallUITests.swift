@@ -11,6 +11,8 @@ final class CurtainCallUITests: XCTestCase {
         app.segmentedControls.buttons["회원가입"].tap()
         XCTAssertTrue(app.textFields["nickname"].exists)
         XCTAssertTrue(app.secureTextFields["confirmation"].exists)
+        XCTAssertTrue(app.buttons["appleOAuth"].exists)
+        XCTAssertTrue(app.buttons["googleOAuth"].exists)
         app.textFields["nickname"].tap()
         app.textFields["nickname"].typeText("Tester")
         app.textFields["email"].tap()

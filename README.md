@@ -1,6 +1,6 @@
 # CurtainCall iOS
 
-SwiftUI iOS app with Supabase. Email signup, login, confirmation email resend, session observation, and local logout are implemented. Chat is not implemented.
+SwiftUI iOS app with Supabase. Email signup, login, confirmation email resend, Apple/Google OAuth launch, session observation, and local logout are implemented. Chat is not implemented.
 
 ## Supabase
 
@@ -20,6 +20,8 @@ The app uses Supabase rather than the sibling Spring/MySQL backend. The shared d
 
 In Supabase Authentication → URL Configuration, add `curtaincall://auth/callback` to Redirect URLs. Keep email confirmation enabled. The app registers this scheme and handles the callback with the SDK. If email is opened on another device, confirm there and then log in manually in the app.
 
+For OAuth, enable Apple and/or Google under Authentication → Sign In / Providers and enter each provider's credentials in Supabase. The app starts the PKCE flow and uses the same callback URL; provider credentials must never be placed in the iOS project. OAuth buttons can be displayed before provider setup, but the provider must be enabled for a real sign-in to succeed.
+
 Signup stores the nickname in user metadata for display only; it must never be used for authorization. The SDK manages persisted sessions and refresh tokens. Passwords are not stored by application code and are cleared on authentication transitions.
 
 The 60-second resend cooldown is a UI convenience; Supabase enforces the actual server limits. Signup deliberately uses a neutral confirmation message because Supabase may obscure existing accounts.
@@ -27,7 +29,7 @@ The 60-second resend cooldown is a UI convenience; Supabase enforces the actual 
 Current limitations:
 - Terms and privacy documents are unavailable per the user; consent/version recording is a release prerequisite, not implemented with invented text.
 - The previous requirements mention verification codes. This implementation uses the default Supabase confirmation link. Code-based verification remains a product decision.
-- Remote redirect allowlist and actual signup/email confirmation/login/session restoration/logout need a test account for end-to-end verification.
+- OAuth provider sign-in remains pending provider credentials and a real Apple/Google account.
 - Password reset, profile editing, and account deletion are outside this signup/login change.
 
 Tests: `xcodebuild -project CurtainCall.xcodeproj -scheme CurtainCall -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5' test -only-testing:CurtainCallTests -only-testing:CurtainCallUITests/CurtainCallUITests`

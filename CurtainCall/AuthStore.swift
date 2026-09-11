@@ -40,6 +40,27 @@ final class AuthStore {
         }
     }
 
+    func signInWithOAuth(provider: Provider) async {
+        guard !isBusy else { return }
+        isBusy = true
+        errorMessage = nil
+        notice = nil
+        defer { isBusy = false }
+
+        do {
+            let session = try await supabase.auth.signInWithOAuth(
+                provider: provider,
+                redirectTo: Self.callbackURL
+            )
+            user = session.user
+            confirmationEmail = nil
+        } catch is CancellationError {
+            notice = "소셜 로그인을 취소했어요."
+        } catch {
+            errorMessage = "소셜 로그인에 실패했어요. Supabase 제공자 설정을 확인해주세요."
+        }
+    }
+
     func signUp(email: String, password: String, confirmation: String, nickname: String) async {
         guard !isBusy else { return }
         errorMessage = AuthValidation.signup(email: email, password: password, confirmation: confirmation, nickname: nickname)
