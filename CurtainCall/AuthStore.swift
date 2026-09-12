@@ -2,6 +2,12 @@ import Foundation
 import Observation
 import Supabase
 
+enum SignUpOutcome: Equatable {
+    case awaitingConfirmation
+    case signedIn
+    case failed
+}
+
 @Observable
 @MainActor
 final class AuthStore {
@@ -12,6 +18,10 @@ final class AuthStore {
     var notice: String?
     private(set) var confirmationEmail: String?
     private(set) var resendAvailableAt = Date.distantPast
+
+    func clearError() {
+        errorMessage = nil
+    }
 
     func observeSession() async {
         for await (_, session) in supabase.auth.authStateChanges {
@@ -61,10 +71,10 @@ final class AuthStore {
         }
     }
 
-    func signUp(email: String, password: String, confirmation: String, nickname: String) async {
-        guard !isBusy else { return }
+    func signUp(email: String, password: String, confirmation: String, nickname: String) async -> SignUpOutcome {
+        guard !isBusy else { return .failed }
         errorMessage = AuthValidation.signup(email: email, password: password, confirmation: confirmation, nickname: nickname)
-        guard errorMessage == nil else { return }
+        guard errorMessage == nil else { return .failed }
         isBusy = true
         notice = nil
         defer { isBusy = false }
@@ -76,12 +86,18 @@ final class AuthStore {
             )
             if let session = result.session {
                 user = session.user
+                confirmationEmail = nil
+                return .signedIn
             } else {
                 confirmationEmail = normalized(email)
                 resendAvailableAt = Date().addingTimeInterval(60)
                 notice = "가입 가능한 주소라면 인증 메일이 전송돼요. 메일의 링크를 눌러 인증한 뒤 로그인해주세요."
+                return .awaitingConfirmation
             }
-        } catch { show(error) }
+        } catch {
+            show(error)
+            return .failed
+        }
     }
 
     func resendConfirmation() async {

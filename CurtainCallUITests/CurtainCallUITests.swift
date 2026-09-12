@@ -25,5 +25,12 @@ final class CurtainCallUITests: XCTestCase {
         app.secureTextFields["password"].typeText("123")
         app.buttons["authSubmit"].tap()
         XCTAssertEqual(app.staticTexts["authError"].label, "비밀번호는 8자 이상으로 입력해주세요.")
+        app.secureTextFields["confirmation"].tap()
+        app.secureTextFields["confirmation"].typeText("123")
+        app.segmentedControls.buttons["로그인"].tap()
+        app.buttons["authSubmit"].tap()
+        XCTAssertEqual(app.staticTexts["authError"].label, "비밀번호를 입력해주세요.")
+        app.segmentedControls.buttons["회원가입"].tap()
+        XCTAssertEqual(app.secureTextFields["confirmation"].value as? String, "비밀번호 확인")
     }
 }
