@@ -1,4 +1,5 @@
 import SwiftUI
+import Supabase
 
 struct AuthView: View {
     let auth: AuthStore
