@@ -5,5 +5,8 @@ import Supabase
 /// Database access must be protected by server-side RLS policies.
 let supabase = SupabaseClient(
     supabaseURL: URL(string: "https://dkqswnfiyvaefroklwmy.supabase.co")!,
-    supabaseKey: "sb_publishable_NGbl6FLe3Okirj098NUURw_BiPecHnJ"
+    supabaseKey: "sb_publishable_NGbl6FLe3Okirj098NUURw_BiPecHnJ",
+    options: .init(
+        auth: .init(emitLocalSessionAsInitialSession: true)
+    )
 )

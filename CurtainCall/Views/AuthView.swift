@@ -72,6 +72,14 @@ struct AuthView: View {
                 }.buttonStyle(.borderedProminent).disabled(auth.isBusy)
                     .accessibilityIdentifier("authSubmit")
 
+                if !isSignup {
+                    Button("비밀번호 재설정") {
+                        Task { await auth.requestPasswordReset(email: email) }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .disabled(auth.isBusy)
+                }
+
                 HStack {
                     Rectangle().frame(height: 1).foregroundStyle(.quaternary)
                     Text("또는").font(.footnote).foregroundStyle(.secondary)

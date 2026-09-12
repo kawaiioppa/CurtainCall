@@ -9,6 +9,8 @@ struct ContentView: View {
             Group {
                 if auth.isRestoring {
                     ProgressView("로그인 상태 확인 중")
+                } else if auth.isPasswordRecovery {
+                    PasswordResetView(auth: auth)
                 } else if let user = auth.user {
                     HomeView(auth: auth, email: user.email ?? "")
                 } else {

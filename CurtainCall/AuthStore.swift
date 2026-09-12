@@ -14,6 +14,7 @@ final class AuthStore {
     private(set) var user: User?
     private(set) var isRestoring = true
     private(set) var isBusy = false
+    private(set) var isPasswordRecovery = false
     var errorMessage: String?
     var notice: String?
     private(set) var confirmationEmail: String?
@@ -24,10 +25,19 @@ final class AuthStore {
     }
 
     func observeSession() async {
-        for await (_, session) in supabase.auth.authStateChanges {
+        for await (event, session) in supabase.auth.authStateChanges {
             if Task.isCancelled { return }
-            user = session?.user
-            isRestoring = false
+            user = AuthSessionPolicy.activeUser(from: session)
+            if event == .passwordRecovery {
+                isPasswordRecovery = true
+            }
+
+            // With the new initial-session behavior, an expired local session is
+            // emitted before its refresh completes. Keep the loading state until
+            // the refresh emits a valid session or signs the user out.
+            if event != .initialSession || session == nil || session?.isExpired == false {
+                isRestoring = false
+            }
         }
     }
 
@@ -41,12 +51,45 @@ final class AuthStore {
         do {
             let session = try await supabase.auth.signIn(email: normalized(email), password: password)
             user = session.user
+            isPasswordRecovery = false
             confirmationEmail = nil
         } catch {
             if let authError = error as? AuthError, authError.errorCode.rawValue == "email_not_confirmed" {
                 confirmationEmail = normalized(email)
             }
             show(error)
+        }
+    }
+
+    func requestPasswordReset(email: String) async {
+        guard !isBusy else { return }
+        let email = normalized(email)
+        errorMessage = AuthValidation.validateEmail(email)
+        guard errorMessage == nil else { return }
+        isBusy = true
+        notice = nil
+        defer { isBusy = false }
+        do {
+            try await supabase.auth.resetPasswordForEmail(email, redirectTo: Self.callbackURL)
+            notice = "비밀번호 재설정 메일을 보냈어요. 받은편지함과 스팸함을 확인해주세요."
+        } catch { show(error) }
+    }
+
+    func completePasswordReset(password: String, confirmation: String) async -> Bool {
+        guard !isBusy else { return false }
+        errorMessage = AuthValidation.passwordReset(password: password, confirmation: confirmation)
+        guard errorMessage == nil else { return false }
+        isBusy = true
+        notice = nil
+        defer { isBusy = false }
+        do {
+            user = try await supabase.auth.update(user: UserAttributes(password: password))
+            isPasswordRecovery = false
+            notice = "비밀번호를 변경했어요."
+            return true
+        } catch {
+            show(error)
+            return false
         }
     }
 
@@ -86,6 +129,7 @@ final class AuthStore {
             )
             if let session = result.session {
                 user = session.user
+                isPasswordRecovery = false
                 confirmationEmail = nil
                 return .signedIn
             } else {
@@ -114,6 +158,9 @@ final class AuthStore {
 
     func handleCallback(_ url: URL) async {
         guard url.scheme == "curtaincall", url.host == "auth", url.path == "/callback" else { return }
+        if callbackType(from: url) == "recovery" {
+            isPasswordRecovery = true
+        }
         do {
             let session = try await supabase.auth.session(from: url)
             user = session.user
@@ -131,6 +178,7 @@ final class AuthStore {
         do {
             try await supabase.auth.signOut(scope: .local)
             user = nil
+            isPasswordRecovery = false
             confirmationEmail = nil
             notice = nil
         } catch { show(error) }
@@ -140,6 +188,15 @@ final class AuthStore {
 
     private func normalized(_ email: String) -> String {
         email.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func callbackType(from url: URL) -> String? {
+        if let type = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.first(where: { $0.name == "type" })?.value {
+            return type
+        }
+        guard let fragment = url.fragment,
+              let components = URLComponents(string: "?\(fragment)") else { return nil }
+        return components.queryItems?.first(where: { $0.name == "type" })?.value
     }
 
     private func show(_ error: Error) {
@@ -155,5 +212,12 @@ final class AuthStore {
         } else {
             errorMessage = "연결을 확인하고 다시 시도해주세요."
         }
+    }
+}
+
+enum AuthSessionPolicy {
+    nonisolated static func activeUser(from session: Session?) -> User? {
+        guard let session, !session.isExpired else { return nil }
+        return session.user
     }
 }
