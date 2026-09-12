@@ -96,24 +96,20 @@ struct ContentView: View {
                             }
 
                             VStack(spacing: 10) {
-                                Button {
-                                    Task { await auth.signInWithOAuth(provider: .apple) }
-                                } label: {
-                                    Label("Apple로 계속하기", systemImage: "apple.logo")
+                                Button {} label: {
+                                    Label("Apple 로그인 준비 중", systemImage: "apple.logo")
                                         .frame(maxWidth: .infinity).padding(.vertical, 8)
                                 }
                                 .buttonStyle(.bordered)
-                                .disabled(auth.isBusy)
+                                .disabled(true)
                                 .accessibilityIdentifier("appleOAuth")
 
-                                Button {
-                                    Task { await auth.signInWithOAuth(provider: .google) }
-                                } label: {
-                                    Label("Google로 계속하기", systemImage: "g.circle")
+                                Button {} label: {
+                                    Label("Google 로그인 준비 중", systemImage: "g.circle")
                                         .frame(maxWidth: .infinity).padding(.vertical, 8)
                                 }
                                 .buttonStyle(.bordered)
-                                .disabled(auth.isBusy)
+                                .disabled(true)
                                 .accessibilityIdentifier("googleOAuth")
                             }
 
