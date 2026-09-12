@@ -90,7 +90,6 @@ struct ConcertDetailView: View {
     @State private var sessions: [PerformanceSession] = []
     @State private var isLoading = true
     @State private var error: String?
-    @State private var selectedSession: UUID?
 
     var body: some View {
         List {
@@ -115,9 +114,7 @@ struct ConcertDetailView: View {
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(sessions) { session in
-                        Button {
-                            selectedSession = session.id
-                        } label: {
+                        NavigationLink(value: session) {
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(session.startsAt.formatted(Self.sessionFormat))
@@ -126,7 +123,6 @@ struct ConcertDetailView: View {
                                     }
                                 }
                                 Spacer()
-                                if selectedSession == session.id { Image(systemName: "checkmark.circle.fill") }
                             }
                         }.tint(.primary)
                     }
@@ -134,6 +130,7 @@ struct ConcertDetailView: View {
             }
         }
         .navigationTitle("공연 상세").navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(for: PerformanceSession.self) { RoomListView(session: $0) }
         .task { await load() }
         .refreshable { await load() }
     }
