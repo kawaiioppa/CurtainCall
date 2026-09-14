@@ -9,13 +9,17 @@ begin
   insert into public.performances(id,title,start_date,end_date)
     values(performance,'boundary-test',current_date-2,current_date);
   insert into public.performance_sessions(id,performance_id,starts_at,ends_at,schedule_source) values
-    (exact_session,performance,now()-interval '2 days',now()-interval '23 hours','operator'),
-    (late_session,performance,now()-interval '3 days',now()-interval '25 hours','operator'),
+    (exact_session,performance,now()-interval '2 days',now()-interval '24 hours','operator'),
+    (late_session,performance,now()-interval '3 days',now()-interval '24 hours 1 microsecond','operator'),
     (unknown_session,performance,now()+interval '1 hour',null,'operator');
   perform set_config('request.jwt.claim.sub',actor::text,true);
   set local role authenticated;
   room := public.room_command('create',p_session_id=>exact_session,p_title=>'Exact deadline');
   if room is null then raise exception 'Inclusive creation deadline rejected'; end if;
+  select expires_at into expiry from public.rooms where id = room;
+  if expiry <> (((now()-interval '2 days') at time zone 'Asia/Seoul')::date + interval '1 month') at time zone 'Asia/Seoul' then
+    raise exception 'Expiry must be one Seoul calendar month after the session date';
+  end if;
   begin
     perform public.room_command('create',p_session_id=>late_session,p_title=>'Too late');
     raise exception 'Late creation succeeded';

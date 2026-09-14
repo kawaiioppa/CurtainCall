@@ -14,3 +14,12 @@ Goal: implement discovery → sessions → rooms/admission → persisted message
 - KOPIS API documentation v5.0 checked: XML catalogue, 31-day max range, max 100 records/page, CCCD for popular music. Schedule guidance is free text; never invent exact sessions.
 - Supabase CLI available through `npx --yes supabase`; CLI account authentication is absent, while MCP works. Secret-name listing failed with Access token not provided. No KOPIS secret presence established. User was asked about key availability and later directed autonomous execution without routine questions.
 - Remaining: HTTP boundary tests and UI navigation verification, KOPIS importer and live credentials, complete room and chat stages, integration tests and further commits.
+
+## 2026-09-14 continuation
+
+- Added room entry restoration: existing members can reopen full rooms; visitors cannot bypass capacity.
+- Added RoomStore and room detail UI with participant list, leave, kick, host transfer and host edits. Mutations invalidate in-flight refreshes and revoke stale membership state.
+- Added My Rooms navigation from the account menu.
+- Fixed recovery callback state to wait for a verified session and added a cancellation path that signs out locally.
+- Added portable SwiftPM verification (28 tests) and disposable PostgreSQL verification, including two transactions contending for the final room slot.
+- Hosted Supabase rollback tests re-run: catalogue access, room membership and room boundary tests passed. iOS simulator/Xcode verification remains unavailable on this Linux host.

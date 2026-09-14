@@ -11,6 +11,7 @@ struct HomeView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Menu {
                         Text(email)
+                        NavigationLink("내 참여 방") { MyRoomsView() }
                         Button("로그아웃") { Task { await auth.signOut() } }
                             .disabled(auth.isBusy).accessibilityIdentifier("signOut")
                     } label: { Label("내 계정", systemImage: "person.crop.circle") }

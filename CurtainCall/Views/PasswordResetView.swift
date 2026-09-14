@@ -52,6 +52,13 @@ struct PasswordResetView: View {
             .buttonStyle(.borderedProminent)
             .disabled(auth.isBusy)
             .accessibilityIdentifier("completePasswordReset")
+
+            Button("취소하고 로그인으로") {
+                Task { await auth.cancelPasswordRecovery() }
+            }
+            .buttonStyle(.bordered)
+            .disabled(auth.isBusy)
+            .accessibilityIdentifier("cancelPasswordRecovery")
         }
         .padding(24)
         .frame(maxWidth: 480)

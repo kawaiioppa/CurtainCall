@@ -19,6 +19,20 @@ final class AuthStore {
     var notice: String?
     private(set) var confirmationEmail: String?
     private(set) var resendAvailableAt = Date.distantPast
+    private let callbackSession: (URL) async throws -> Session
+    private let localSignOut: () async throws -> Void
+
+    init(
+        callbackSession: @escaping (URL) async throws -> Session = {
+            try await supabase.auth.session(from: $0)
+        },
+        localSignOut: @escaping () async throws -> Void = {
+            try await supabase.auth.signOut(scope: .local)
+        }
+    ) {
+        self.callbackSession = callbackSession
+        self.localSignOut = localSignOut
+    }
 
     func clearError() {
         errorMessage = nil
@@ -27,17 +41,24 @@ final class AuthStore {
     func observeSession() async {
         for await (event, session) in supabase.auth.authStateChanges {
             if Task.isCancelled { return }
-            user = AuthSessionPolicy.activeUser(from: session)
-            if event == .passwordRecovery {
-                isPasswordRecovery = true
-            }
+            applyAuthState(event: event, session: session)
+        }
+    }
 
-            // With the new initial-session behavior, an expired local session is
-            // emitted before its refresh completes. Keep the loading state until
-            // the refresh emits a valid session or signs the user out.
-            if event != .initialSession || session == nil || session?.isExpired == false {
-                isRestoring = false
-            }
+    func applyAuthState(event: AuthChangeEvent, session: Session?) {
+        let activeUser = AuthSessionPolicy.activeUser(from: session)
+        user = activeUser
+        if event == .passwordRecovery {
+            isPasswordRecovery = activeUser != nil
+        } else if event == .signedOut {
+            isPasswordRecovery = false
+        }
+
+        // With the new initial-session behavior, an expired local session is
+        // emitted before its refresh completes. Keep the loading state until
+        // the refresh emits a valid session or signs the user out.
+        if event != .initialSession || session == nil || session?.isExpired == false {
+            isRestoring = false
         }
     }
 
@@ -100,6 +121,7 @@ final class AuthStore {
         notice = nil
         defer { isBusy = false }
 
+#if canImport(AuthenticationServices)
         do {
             let session = try await supabase.auth.signInWithOAuth(
                 provider: provider,
@@ -112,6 +134,9 @@ final class AuthStore {
         } catch {
             errorMessage = "소셜 로그인에 실패했어요. Supabase 제공자 설정을 확인해주세요."
         }
+#else
+        errorMessage = "이 플랫폼에서는 소셜 로그인을 사용할 수 없어요."
+#endif
     }
 
     func signUp(email: String, password: String, confirmation: String, nickname: String) async -> SignUpOutcome {
@@ -158,16 +183,32 @@ final class AuthStore {
 
     func handleCallback(_ url: URL) async {
         guard url.scheme == "curtaincall", url.host == "auth", url.path == "/callback" else { return }
-        if callbackType(from: url) == "recovery" {
-            isPasswordRecovery = true
-        }
         do {
-            let session = try await supabase.auth.session(from: url)
+            let session = try await callbackSession(url)
             user = session.user
+            if callbackType(from: url) == "recovery" {
+                isPasswordRecovery = true
+            }
             confirmationEmail = nil
             errorMessage = nil
             notice = nil
         } catch { show(error) }
+    }
+
+    func cancelPasswordRecovery() async {
+        guard isPasswordRecovery, !isBusy else { return }
+        isBusy = true
+        errorMessage = nil
+        notice = nil
+        defer { isBusy = false }
+        do {
+            try await localSignOut()
+            user = nil
+            isPasswordRecovery = false
+            confirmationEmail = nil
+        } catch {
+            show(error)
+        }
     }
 
     func signOut() async {
@@ -176,7 +217,7 @@ final class AuthStore {
         errorMessage = nil
         defer { isBusy = false }
         do {
-            try await supabase.auth.signOut(scope: .local)
+            try await localSignOut()
             user = nil
             isPasswordRecovery = false
             confirmationEmail = nil

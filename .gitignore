@@ -6,3 +6,7 @@ DerivedData/
 # Local credentials and temporary test artifacts
 *.local
 *.secret
+
+# SwiftPM portable verification
+.build/
+.swiftpm/
